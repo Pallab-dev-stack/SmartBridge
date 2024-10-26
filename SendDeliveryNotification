@@ -1,0 +1,17 @@
+trigger SendDeliveryNotification on OrderOr__c (after update) {
+    for (OrderOr__c order : Trigger.New) {
+        if (order.Status__c == 'Delivered' && order.Status__c != Trigger.OldMap.get(order.Id).Status__c) {
+            // Fetch customer email
+            String customerEmail = order.Email__c;
+            
+            // Create email message
+            Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
+            mail.setToAddresses(new String[] {customerEmail});
+            mail.setSubject('Your Order Has Been Delivered');
+            mail.setPlainTextBody('Dear ' + order.Customer_Name__r.Name + ', your order has been successfully delivered.');
+            
+            // Send the email
+            Messaging.sendEmail(new Messaging.SingleEmailMessage[] {mail});
+        }
+    }
+}
