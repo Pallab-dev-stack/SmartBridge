@@ -1,0 +1,12 @@
+trigger AssignSupplierToInventory on Inventory__c (before insert) {
+    for (Inventory__c inv : Trigger.New) {
+        // Query the supplier for the product
+        Supplier__c supplier = [SELECT Id FROM Supplier__c 
+                                WHERE Product_Supplied__c = :inv.Product__c 
+                                LIMIT 1];
+
+        if (supplier != null) {
+            inv.Supplier_Name__c = supplier.Id; // Assign the supplier to the inventory item
+        }
+    }
+}
