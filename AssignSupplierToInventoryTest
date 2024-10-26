@@ -1,0 +1,41 @@
+@isTest
+public class AssignSupplierToInventoryTest {
+    @isTest
+    static void testAssignSupplier_Success() {
+        // Setup test data
+        ProductOr__c product = new ProductOr__c(Name = 'Basmati Rice');
+        insert product;
+        
+        Supplier__c supplier = new Supplier__c(Name = 'ABC Supplies', Product_Supplied__c = product.Id);
+        insert supplier;
+
+        Inventory__c inventory = new Inventory__c(Product__c = product.Id);
+
+        // Execute
+        Test.startTest();
+        insert inventory;
+        Test.stopTest();
+
+        // Verify that the Supplier has been assigned
+        Inventory__c insertedInventory = [SELECT Supplier_Name__c FROM Inventory__c WHERE Id = :inventory.Id];
+        System.assertEquals(supplier.Id, insertedInventory.Supplier_Name__c, 'Supplier should be assigned to the inventory');
+    }
+    
+    @isTest
+    static void testAssignSupplier_NoSupplierFound() {
+        // Setup test data
+        ProductOr__c product = new ProductOr__c(Name = 'Jasmine Rice');
+        insert product;
+
+        Inventory__c inventory = new Inventory__c(Product__c = product.Id);
+
+        // Execute
+        Test.startTest();
+        insert inventory;
+        Test.stopTest();
+
+        // Verify that no Supplier has been assigned
+        Inventory__c insertedInventory = [SELECT Supplier_Name__c FROM Inventory__c WHERE Id = :inventory.Id];
+        System.assertEquals(null, insertedInventory.Supplier_Name__c, 'No supplier should be assigned if none matches the product');
+    }
+}
