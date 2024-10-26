@@ -1,0 +1,22 @@
+trigger UpdateInventoryOnOrderOr on OrderOr__c (after insert) {
+    List<Inventory__c> productsToUpdate = new List<Inventory__c>();
+    
+    for (OrderOr__c order : Trigger.New) {
+        // Query product record
+        List<Inventory__c> productList = [SELECT Id, Available_Stock__c FROM Inventory__c WHERE Id = :order.Product__c];
+        
+        // Ensure the product record exists
+        if (!productList.isEmpty()) {
+            Inventory__c product = productList[0];
+            product.Available_Stock__c -= order.Quantity__c;
+            productsToUpdate.add(product);
+        } else {
+            // Handle the case where no product record is found
+            System.debug('No product found for Order: ' + order.Id);
+        }
+    }
+    
+    if (!productsToUpdate.isEmpty()) {
+        update productsToUpdate;
+    }
+}
