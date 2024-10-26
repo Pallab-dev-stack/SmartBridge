@@ -1,0 +1,42 @@
+@isTest
+public class SendDeliveryNotificationTest {
+    @isTest
+    static void testSendDeliveryNotification_Success() {
+        // Setup test data
+        Contact customer = new Contact(LastName = 'Doe', Email = 'test@example.com');
+        insert customer;
+
+        OrderOr__c order = new OrderOr__c(Customer_Name__c = customer.Id, Status__c = 'Processing', Email__c = 'test@example.com');
+        insert order;
+
+        // Update status to trigger email notification
+        Test.startTest();
+        order.Status__c = 'Delivered';
+        update order;
+        Test.stopTest();
+
+        // Verify that an email was sent
+        Integer emailInvocations = Limits.getEmailInvocations();
+        System.assert(emailInvocations > 0, 'An email should have been sent when the order is marked as delivered.');
+    }
+    
+    @isTest
+    static void testSendDeliveryNotification_NoEmailWhenStatusNotDelivered() {
+        // Setup test data
+        Contact customer = new Contact(LastName = 'Smith', Email = 'test2@example.com');
+        insert customer;
+
+        OrderOr__c order = new OrderOr__c(Customer_Name__c = customer.Id, Status__c = 'Processing', Email__c = 'test2@example.com');
+        insert order;
+
+        // Update status to something other than 'Delivered'
+        Test.startTest();
+        order.Status__c = 'Shipped';
+        update order;
+        Test.stopTest();
+
+        // Verify that no email was sent
+        Integer emailInvocations = Limits.getEmailInvocations();
+        System.assertEquals(0, emailInvocations, 'No email should be sent if status is not changed to Delivered.');
+    }
+}
